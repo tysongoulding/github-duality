@@ -58,14 +58,18 @@ Stop using the standard git clone for your initial setup. Use the built-in helpe
 ### For Work Projects
 
 PowerShell
-
-Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   # Automatically clones to C:\repo\work\project-name using your work key  clone-work git@github.com:org/project-name.git   `
+```
+# Automatically clones to C:\repo\work\project-name using your work key
+clone-work git@github.com:org/project-name.git
+```
 
 ### For Personal Projects
 
 PowerShell
-
-Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   # Automatically clones to C:\repo\personal\my-app using your personal key  clone-personal git@github.com:user/my-app.git   `
+```
+# Automatically clones to C:\repo\personal\my-app using your personal key
+clone-personal git@github.com:user/my-app.git
+```
 
 Once cloned, just use git normally. The system handles the rest.
 
