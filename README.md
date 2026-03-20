@@ -25,14 +25,18 @@ No more manual git config user.email toggling. No more "Permission Denied" error
 Run this in an **Administrator** PowerShell terminal to ensure the SSH Agent service can be configured.
 
 PowerShell
-
-Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser  .\setup-duality-windows.ps1   `
+```
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+.\setup-duality-windows.ps1
+```
 
 ### Linux / macOS (Bash/Zsh)
 
 Bash
-
-Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   chmod +x setup-duality-unix.sh  ./setup-duality-unix.sh   `
+```
+chmod +x setup-duality-unix.sh
+./setup-duality-unix.sh
+```
 
 🛠 How it Works
 ---------------
