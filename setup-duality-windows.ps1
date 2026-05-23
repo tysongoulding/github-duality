@@ -5,6 +5,11 @@ $workEmail = Read-Host "Enter your Work Email"
 $repoRoot = Read-Host "Enter base repo directory (default: C:\repo)"
 if (-not $repoRoot) { $repoRoot = "C:\repo" }
 
+$workOrgs = Read-Host "Enter Work Organizations (space-separated, e.g., company organization)"
+$workDomains = Read-Host "Enter Work Domains (space-separated, e.g., gitlab.company.com)"
+$personalOrgs = Read-Host "Enter Personal Organizations (space-separated, e.g., username)"
+$personalDomains = Read-Host "Enter Personal Domains (space-separated, e.g., github.com)"
+
 # --- 2. Directory & Service Setup ---
 New-Item -Path "$repoRoot\personal", "$repoRoot\work" -ItemType Directory -Force | Out-Null
 $sshDir = "$HOME\.ssh"
@@ -44,7 +49,16 @@ Host github.com-work
     IdentitiesOnly yes
 # --- Antigravity Config End ---
 "@
-Add-Content "$sshDir\config" $sshConfig
+# Check if ssh config already contains config
+$sshConfigPath = "$sshDir\config"
+if (Test-Path $sshConfigPath) {
+    $content = Get-Content $sshConfigPath -Raw
+    if ($content -notlike "*# --- Antigravity Config Start ---*") {
+        Add-Content $sshConfigPath "`n$sshConfig"
+    }
+} else {
+    Set-Content $sshConfigPath $sshConfig
+}
 
 # Create Git Sub-Configs
 @'
@@ -66,7 +80,42 @@ $gitRoot = $repoRoot.Replace('\', '/')
 git config --global includeIf."gitdir:$gitRoot/personal/".path "~/.gitconfig-personal"
 git config --global includeIf."gitdir:$gitRoot/work/".path "~/.gitconfig-work"
 
-# --- 5. Profile Update ---
+# Write Global Duality Settings
+git config --global duality.personalEmail $personalEmail
+git config --global duality.workEmail $workEmail
+git config --global duality.personalKey "~/.ssh/id_ed25519"
+git config --global duality.workKey "~/.ssh/id_ed25519_work"
+git config --global duality.workOrgs $workOrgs
+git config --global duality.personalOrgs $personalOrgs
+git config --global duality.workDomains $workDomains
+git config --global duality.personalDomains $personalDomains
+git config --global duality.workDir "$repoRoot\work"
+git config --global duality.personalDir "$repoRoot\personal"
+git config --global duality.defaultIdentity "personal"
+
+# --- 5. Global Hooks & Templates Setup ---
+$dualityDir = "$HOME\.git-duality"
+New-Item -Path $dualityDir -ItemType Directory -Force | Out-Null
+New-Item -Path "$dualityDir\templates\hooks" -ItemType Directory -Force | Out-Null
+
+# Copy duality-hook.sh to the global installation path
+Copy-Item -Path "duality-hook.sh" -Destination "$dualityDir\duality-hook.sh" -Force
+
+# Write Hook Stubs to the template directory
+$stubContent = @"
+#!/bin/sh
+"`$HOME/.git-duality/duality-hook.sh" "`$@"
+"@
+
+Set-Content -Path "$dualityDir\templates\hooks\post-checkout" -Value $stubContent
+Set-Content -Path "$dualityDir\templates\hooks\pre-commit" -Value $stubContent
+Set-Content -Path "$dualityDir\templates\hooks\pre-push" -Value $stubContent
+
+# Configure Global Git Template Directory
+$templatePath = "$dualityDir\templates".Replace('\', '/')
+git config --global init.templateDir "$templatePath"
+
+# --- 6. Profile Update ---
 $profileExtras = @"
 `$env:SSH_AUTH_SOCK = "\\.\pipe\openssh-ssh-agent"
 
@@ -83,10 +132,57 @@ function clone-personal {
     `$persUrl = `$url -replace "github.com:", "github.com-personal:"
     git clone `$persUrl "$repoRoot\personal\`$folderName"
 }
+
+function git-duality {
+    param([string]`$identity)
+    if (`$identity) {
+        if (`$identity -eq "work") {
+            git config user.email "$(git config --global duality.workEmail)"
+            `$workKey = git config --global duality.workKey
+            if (-not `$workKey) { `$workKey = "~/.ssh/id_ed25519_work" }
+            `$workKeyResolved = `$workKey.Replace('~', `$env:USERPROFILE).Replace('\', '/')
+            git config core.sshCommand "ssh -i `"`$workKeyResolved`" -o IdentitiesOnly=yes"
+            Write-Host "Manually configured repository for Work." -ForegroundColor Green
+        } elseif (`$identity -eq "personal") {
+            git config user.email "$(git config --global duality.personalEmail)"
+            `$persKey = git config --global duality.personalKey
+            if (-not `$persKey) { `$persKey = "~/.ssh/id_ed25519" }
+            `$persKeyResolved = `$persKey.Replace('~', `$env:USERPROFILE).Replace('\', '/')
+            git config core.sshCommand "ssh -i `"`$persKeyResolved`" -o IdentitiesOnly=yes"
+            Write-Host "Manually configured repository for Personal." -ForegroundColor Green
+        } else {
+            Write-Error "Invalid identity. Use 'work' or 'personal'."
+        }
+    } else {
+        Write-Host "Running Duality auto-detection..." -ForegroundColor Yellow
+        if (Test-Path ".git") {
+            `$hooksDir = ".git\hooks"
+            if (-not (Test-Path `$hooksDir)) { New-Item -Path `$hooksDir -ItemType Directory -Force | Out-Null }
+            `$stub = @"
+#!/bin/sh
+"`\`$HOME/.git-duality/duality-hook.sh" "\`$@"
+"@
+            Set-Content -Path "`$hooksDir\post-checkout", "`$hooksDir\pre-commit", "`$hooksDir\pre-push" -Value `$stub
+            Write-Host "Installed Duality hooks in current repository." -ForegroundColor Cyan
+            if (Get-Command bash -ErrorAction SilentlyContinue) {
+                bash -c "~/.git-duality/duality-hook.sh"
+            } elseif (Get-Command sh -ErrorAction SilentlyContinue) {
+                sh -c "~/.git-duality/duality-hook.sh"
+            } else {
+                Write-Host "Hooks installed, but could not execute bash/sh for immediate run. It will run automatically on git actions." -ForegroundColor Yellow
+            }
+        } else {
+            Write-Error "Not a git repository. Run this command inside a git repository."
+        }
+    }
+}
 "@
 
 if (-not (Test-Path $PROFILE)) { New-Item -Path $PROFILE -Type File -Force }
-Add-Content $PROFILE "`n$profileExtras"
+$profileContent = Get-Content $PROFILE -Raw
+if ($profileContent -notlike "*function git-duality*") {
+    Add-Content $PROFILE "`n$profileExtras"
+}
 
 Write-Host "--- Setup Complete! ---" -ForegroundColor Cyan
 Write-Host "1. Restart PowerShell or run: . `$PROFILE"
