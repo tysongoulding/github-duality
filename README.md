@@ -1,9 +1,9 @@
-GitHub Duality (Antigravity)
-============================
+GitHub Duality
+==============
 
-**GitHub Duality** is a context-aware identity manager for developers who juggle multiple personalities (Work vs. Personal). It uses "Antigravity" logic to automatically swap your SSH keys and Git configurations based on which folder you are standing in or the remote URL of the repository.
+**GitHub Duality** is a context-aware identity manager for developers who juggle multiple personalities (Work vs. Personal). It automatically swaps your SSH keys and Git configurations based on the folder you are in or the remote URL of the repository you are working on.
 
-It works seamlessly across all command lines, IDEs (Cursor, Windsurf, VS Code), and agentic harnesses (Antigravity, Claude Code, etc.), even when repositories are cloned into temporary scratch directories outside your standard development folders.
+It works seamlessly across all command lines, IDEs (Cursor, Windsurf, VS Code), and agentic harnesses (Claude Code, Antigravity, etc.), even when repositories are cloned into temporary scratch directories outside your standard development folders.
 
 ✨ Features
 ----------
@@ -38,7 +38,7 @@ chmod +x setup-duality-unix.sh
 🛠 How it Works
 ---------------
 
-The "Antigravity" logic relies on a multi-tier handshake:
+The Duality logic relies on a multi-tier handshake:
 
 1.  **Directory Detection (`includeIf`)**: Your global `.gitconfig` watches your main personal and work folders (e.g. `C:/repo/personal` and `C:/repo/work`).
 2.  **Global Templates**: Git is configured to use a custom template directory (`~/.git-duality/templates`). Every time a repository is cloned or initialized, a small hook stub is added to `.git/hooks`.
